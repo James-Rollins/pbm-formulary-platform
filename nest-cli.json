@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/pbm-formulary-platform/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/pbm-formulary-platform/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/pbm-formulary-platform",
+  "projects": {
+    "admin-api": {
+      "type": "application",
+      "root": "apps/admin-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/admin-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/admin-api/tsconfig.app.json"
+      }
+    },
+    "consumer-api": {
+      "type": "application",
+      "root": "apps/consumer-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/consumer-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/consumer-api/tsconfig.app.json"
+      }
+    },
+    "pbm-formulary-platform": {
+      "type": "application",
+      "root": "apps/pbm-formulary-platform",
+      "entryFile": "main",
+      "sourceRoot": "apps/pbm-formulary-platform/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/pbm-formulary-platform/tsconfig.app.json"
+      }
+    },
+    "shared-auth": {
+      "type": "library",
+      "root": "libs/shared-auth",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared-auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared-auth/tsconfig.lib.json"
+      }
+    },
+    "shared-domain": {
+      "type": "library",
+      "root": "libs/shared-domain",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared-domain/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared-domain/tsconfig.lib.json"
+      }
+    },
+    "shared-logging": {
+      "type": "library",
+      "root": "libs/shared-logging",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared-logging/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared-logging/tsconfig.lib.json"
+      }
+    }
+  }
+}
