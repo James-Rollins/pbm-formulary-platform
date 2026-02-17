@@ -1,11 +1,37 @@
-import { Module } from '@nestjs/common';
-import { ConsumerApiController } from './consumer-api.controller';
-import { ConsumerApiService } from './consumer-api.service';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthController } from './health.controller';
+import {
+  CorrelationIdMiddleware,
+  RequestLoggingInterceptor,
+  REQUEST_LOGGING_OPTIONS,
+} from '@pbm/shared-logging';
+
+import { ConfigModule } from '@nestjs/config';
+import { envValidationSchema } from '@pbm/shared-domain';
+
 
 @Module({
-  imports: [],
+  imports: [
+  ConfigModule.forRoot({
+    isGlobal: true,
+    validationSchema: envValidationSchema,
+  }),
+],
   controllers: [HealthController],
-  providers: [],
+  providers: [
+    {
+      provide: REQUEST_LOGGING_OPTIONS,
+      useValue: { excludePaths: ['/health'] },
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLoggingInterceptor,
+    },
+  ],
 })
-export class ConsumerApiModule {}
+export class ConsumerApiModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}
