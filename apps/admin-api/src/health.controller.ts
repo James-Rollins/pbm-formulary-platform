@@ -1,8 +1,9 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '@pbm/shared-auth';
+import { JwtAuthGuard, Roles, RolesGuard } from '@pbm/shared-auth';
 
 @Controller('health')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class HealthController {
   @Get()
   health() {
