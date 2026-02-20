@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pbm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pbm
+      POSTGRES_PASSWORD: pbm_password
+      POSTGRES_DB: pbm
+    ports:
+      - "5432:5432"
+    volumes:
+      - pbm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pbm -d pbm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pbm_pgdata:

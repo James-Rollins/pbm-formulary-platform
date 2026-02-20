@@ -11,6 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from '@pbm/shared-domain';
 import { SharedAuthModule } from '@pbm/shared-auth';
 
+import { PrismaModule } from 'libs/shared-data-access';
+
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { SharedAuthModule } from '@pbm/shared-auth';
     validationSchema: envValidationSchema,
   }),
   SharedAuthModule,
+  PrismaModule,
 ],
   controllers: [HealthController],
   providers: [

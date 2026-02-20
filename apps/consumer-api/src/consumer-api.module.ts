@@ -9,6 +9,7 @@ import {
 
 import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from '@pbm/shared-domain';
+import { PrismaModule } from 'libs/shared-data-access';
 
 
 @Module({
@@ -17,6 +18,7 @@ import { envValidationSchema } from '@pbm/shared-domain';
     isGlobal: true,
     validationSchema: envValidationSchema,
   }),
+  PrismaModule,
 ],
   controllers: [HealthController],
   providers: [

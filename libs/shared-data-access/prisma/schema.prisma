@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FormularyVersionState {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  plans             Plan[]
+  drugs             Drug[]
+  formularies       Formulary[]
+  versions          FormularyVersion[]
+  draftEntries      DraftEntry[]
+  publishedCoverage PublishedCoverage[]
+  auditEvents       AuditEvent[]
+
+  @@map("client")
+}
+
+model Plan {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String
+  createdAt DateTime @default(now())
+
+  client   Client              @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  coverage PublishedCoverage[]
+
+  @@unique([clientId, name])
+  @@index([clientId])
+  @@map("plan")
+}
+
+model Drug {
+  id        String   @id @default(uuid())
+  clientId  String
+  ndc11     String // normalize to 11-digit string in app layer
+  labelName String?
+  createdAt DateTime @default(now())
+
+  client   Client              @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  drafts   DraftEntry[]
+  coverage PublishedCoverage[]
+
+  @@unique([clientId, ndc11])
+  @@index([clientId, ndc11])
+  @@map("drug")
+}
+
+model Formulary {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String
+  createdAt DateTime @default(now())
+
+  client   Client             @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  versions FormularyVersion[]
+
+  @@unique([clientId, name])
+  @@index([clientId])
+  @@map("formulary")
+}
+
+model FormularyVersion {
+  id          String                @id @default(uuid())
+  clientId    String
+  formularyId String
+  state       FormularyVersionState @default(DRAFT)
+
+  // optional but recommended for business rules
+  effectiveFrom DateTime?
+  effectiveTo   DateTime?
+
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  formulary Formulary @relation(fields: [formularyId], references: [id], onDelete: Restrict)
+
+  drafts    DraftEntry[]
+  published PublishedCoverage[]
+
+  @@index([clientId])
+  @@index([clientId, formularyId])
+  @@index([clientId, state])
+  @@map("formulary_version")
+}
+
+model DraftEntry {
+  id        String @id @default(uuid())
+  clientId  String
+  versionId String
+  drugId    String
+
+  // Minimal “coverage” attributes for Phase 1; we can expand later
+  tier   Int?
+  status String? // e.g., "COVERED", "NOT_COVERED", "PA_REQUIRED"
+  notes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  version FormularyVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  drug    Drug             @relation(fields: [drugId], references: [id], onDelete: Restrict)
+  client  Client           @relation(fields: [clientId], references: [id])
+
+  @@unique([clientId, versionId, drugId])
+  @@index([clientId, versionId])
+  @@index([clientId, drugId])
+  @@map("draft_entry")
+}
+
+model PublishedCoverage {
+  id        String @id @default(uuid())
+  clientId  String
+  versionId String
+  planId    String
+  drugId    String
+
+  // Snapshot fields (immutable once created)
+  ndc11  String
+  tier   Int?
+  status String?
+
+  // For “as-of” lookup
+  effectiveFrom DateTime?
+  effectiveTo   DateTime?
+
+  createdAt DateTime @default(now())
+
+  version FormularyVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  plan    Plan             @relation(fields: [planId], references: [id], onDelete: Restrict)
+  drug    Drug             @relation(fields: [drugId], references: [id], onDelete: Restrict)
+  client  Client           @relation(fields: [clientId], references: [id])
+
+  @@unique([clientId, versionId, planId, ndc11])
+  @@index([clientId, planId, ndc11])
+  @@index([clientId, versionId])
+  @@map("published_coverage")
+}
+
+model AuditEvent {
+  id       String @id @default(uuid())
+  clientId String
+
+  // correlation with your logging correlationId
+  correlationId String?
+
+  actorUserId String?
+  actorRole   String?
+  action      String
+  entityType  String?
+  entityId    String?
+  detailsJson Json?
+
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  @@index([clientId, createdAt])
+  @@index([correlationId])
+  @@map("audit_event")
+}
